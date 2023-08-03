@@ -8,12 +8,11 @@ from exceptions import LoginFailed
 import logging
     
 class Story:
-    def __init__(self, url, title="", category="", published="", image=""):
+    def __init__(self, url, title="", category="", published=""):
         self.url = url
         self.title = title
         self.category = category
         self.published = published
-        self.image = image
         self.content = ""
         self.summary = ""
 
@@ -48,7 +47,6 @@ class Story:
             "title": self.title,
             "category": self.category,
             "published": self.published,
-            "image": self.image,
             "content": self.content,
             "summary": self.summary,
         }
