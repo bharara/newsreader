@@ -15,6 +15,7 @@ from signin import SigninHandler
 def dateChanged():
     pass
 
+
 def clickFetch(lb):
     lb.info(f"Fetching stories for date {st.session_state.selected_date}")
     arch = Archiver(st.session_state.selected_date)
@@ -28,7 +29,7 @@ def initiateState():
     # WebDriver
     logging.info(f"Creating webdriver with options")
     options = Options()
-    options.add_argument('-headless')
+    # options.add_argument("-headless")
     st.session_state.driver = webdriver.Firefox(options=options)
 
     # Login Handler
@@ -38,7 +39,7 @@ def initiateState():
 
 
 def exit():
-    if 'driver' in st.session_state:
+    if "driver" in st.session_state:
         st.session_state.driver.close()
     pid = os.getpid()
     p = psutil.Process(pid)

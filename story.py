@@ -4,9 +4,11 @@ from signin import SigninHandler
 from selenium.webdriver.common.by import By
 from time import sleep
 from exceptions import LoginFailed
-
+from summary_openai import summarize_article
 import logging
-    
+import streamlit as st
+
+
 class Story:
     def __init__(self, url, title="", category="", published=""):
         self.url = url
@@ -18,12 +20,14 @@ class Story:
 
         self.logger = logging.getLogger(__name__)
 
-
     def getSummary(self):
         self.logger.info(f"Getting summary {self.title[:20]}")
-        self.summary = self.content[:100]
-        
+        self.summary = summarize_article(self.content)
+        # self.summary = self.content[:100]
+
     def getStoryContent(self, driver: webdriver, signInHandler: SigninHandler):
+        if self.content != "":
+            return self.content
         self.logger.info(f"Getting story {self.title[:20]}")
         driver.get(self.url)
 
@@ -33,12 +37,14 @@ class Story:
                 signInHandler.login(driver)
                 driver.get(self.url)
 
-            paras = driver.find_elements(By.TAG_NAME, 'p')
+            paras = driver.find_elements(By.TAG_NAME, "p")
             self.logger.info(f"Got {len(paras)} paras")
             self.content = "\n\n".join([para.text for para in paras])
 
         except LoginFailed as e:
-            self.logger.error(f"LoginFailed exception occurred while getting the story: {e}")
+            self.logger.error(
+                f"LoginFailed exception occurred while getting the story: {e}"
+            )
             raise Exception("Failed getting story.")
 
     def toDict(self):
@@ -50,9 +56,9 @@ class Story:
             "content": self.content,
             "summary": self.summary,
         }
-    
+
     def __repr__(self):
-       return self.__str__()
-        
-    def __str__ (self):
+        return self.__str__()
+
+    def __str__(self):
         return json.dumps(self.toDict())

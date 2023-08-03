@@ -57,3 +57,4 @@ validators==0.20.0
 watchdog==3.0.0
 wsproto==1.2.0
 zipp==3.16.2
+openai
