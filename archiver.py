@@ -38,9 +38,8 @@ class Archiver:
             url = article.find_element(By.CSS_SELECTOR, 'a').get_attribute('href')
             category = article.find_element(By.CSS_SELECTOR, 'div.WSJTheme--articleType--34Gt-vdG').text
             title = article.find_element(By.CSS_SELECTOR, 'span.WSJTheme--headlineText--He1ANr9C').text
-            img = article.find_element(By.CSS_SELECTOR, 'img').get_attribute('src')
             timestamp = article.find_element(By.CSS_SELECTOR, 'p').text
-            self.stories.append(Story(url, title, category, timestamp, img))
+            self.stories.append(Story(url, title, category, timestamp))
 
         return len(articles)
     
