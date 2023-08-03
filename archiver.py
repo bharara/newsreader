@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
 from story import Story
 import logging
 from datetime import date
@@ -29,6 +30,7 @@ class Archiver:
     def __getStoriesForPage__(self, driver:webdriver, page):
         self.logger.info(f"Getting page {page}")
         driver.get(self.url(page))
+        self.__acceptCookies__(driver)
         articles = driver.find_elements(By.CSS_SELECTOR, 'article')
         self.logger.info(f"Found {len(articles)} articles")
 
@@ -41,6 +43,19 @@ class Archiver:
             self.stories.append(Story(url, title, category, timestamp, img))
 
         return len(articles)
+    
+    def __acceptCookies__(self, driver:webdriver):
+        try:
+            iframe = driver.find_element(By.ID, "sp_message_iframe_718122")
+            driver.switch_to.frame(iframe)
+            cookies_btn = driver.find_element(By.CLASS_NAME, "sp_choice_type_11")
+            cookies_btn.click()
+            driver.switch_to.default_content()
+            self.logger.info(f"Accepted Cookies")
+
+        except NoSuchElementException:
+            pass
+
     
     def toCSV(self):
         self.logger.info(f"Saving stories to csv for {self.year}/{self.month:02d}/{self.date:02d}")
