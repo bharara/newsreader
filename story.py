@@ -26,6 +26,7 @@ class Story:
     def getSummary(self):
         if not self.has_gpt_summary:
             self.summary = summarize_article(self.content)
+            self.has_gpt_summary = True
         return self.summary
 
     def getStoryContent(self, driver: webdriver, signInHandler: SigninHandler):
