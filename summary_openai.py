@@ -1,14 +1,10 @@
 import openai
 
-# from summary_openai import summarize_article
-# self.summary = summarize_article(self.content)
-
 with open("openai_key.txt", "r") as file:
     openai_key = file.readline().strip()
 
 
 def summarize_article(article_text):
-    print(article_text)
     # Initialize the OpenAI API client with your API key
     openai.api_key = openai_key
 
@@ -27,7 +23,5 @@ def summarize_article(article_text):
 
     # Extract the generated summary
     summary = response.choices[0].message.content.strip()
-
-    print(summary)
 
     return summary
