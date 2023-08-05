@@ -4,7 +4,7 @@ from signin import SigninHandler
 from selenium.webdriver.common.by import By
 from time import sleep
 from exceptions import LoginFailed
-from summary_openai import summarize_article
+# from summary_openai import summarize_article
 import logging
 import re
 
@@ -21,7 +21,7 @@ class Story:
 
     def getSummary(self):
         if self.summary == "":
-            self.summary = summarize_article(self.content)
+            # self.summary = summarize_article(self.content)
             self.summary = self.content[:100]
         return self.summary
 
