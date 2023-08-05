@@ -1,5 +1,8 @@
 from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.chrome.options import Options
+
+# from selenium.webdriver.firefox.options import Options
+
 
 import streamlit as st
 
@@ -31,8 +34,9 @@ def initiateState():
     # WebDriver
     logging.info(f"Creating webdriver with options")
     options = Options()
-    # options.add_argument("-headless")
-    st.session_state.driver = webdriver.Firefox(options=options)
+    options.add_argument("-headless")
+    # st.session_state.driver = webdriver.Firefox(options=options)
+    st.session_state.driver = webdriver.Chrome(options=options)
 
     # Login Handler
     logging.info(f"Creating Signin Handler")
