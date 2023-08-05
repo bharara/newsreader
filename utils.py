@@ -18,8 +18,10 @@ def dateChanged():
 
 def clickFetch(lb):
     lb.info(f"Fetching stories for date {st.session_state.selected_date}")
-    arch = Archiver(st.session_state.selected_date)
-    arch.getStories(st.session_state.driver)
+    print (st.session_state)
+    arch = Archiver(st.session_state.selected_date, st.session_state.driver, st.session_state.handler)
+    arch.getStories()
+    arch.getStoryDetails()
     lb.info(f"Saving stories to CSV")
     arch.toCSV()
 

@@ -18,7 +18,7 @@ st.title("Reader")
 lb = ui.logbox()
 utils.initiateState()
 selected_date = ui.datePickerRow(lb)
-ui.sideBar(lb)
+ui.sideBar()
 
 df = data_manager.getStories(selected_date)
 if df is None:

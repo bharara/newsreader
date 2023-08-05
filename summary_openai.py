@@ -28,6 +28,4 @@ def summarize_article(article_text):
     # Extract the generated summary
     summary = response.choices[0].message.content.strip()
 
-    print(summary)
-
     return summary
