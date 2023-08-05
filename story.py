@@ -4,25 +4,28 @@ from signin import SigninHandler
 from selenium.webdriver.common.by import By
 from time import sleep
 from exceptions import LoginFailed
-# from summary_openai import summarize_article
+
+from summary_openai import summarize_article
 import logging
 import re
 
+
 class Story:
-    def __init__(self, url, title="", category="", published="", content="", summary=""):
+    def __init__(
+        self, url, title="", category="", published="", content="", summary=""
+    ):
         self.url = url
         self.title = title
         self.category = category
         self.published = published
-        self.content =  content
+        self.content = content
         self.summary = summary
-
+        self.has_gpt_summary = False
         self.logger = logging.getLogger(__name__)
 
     def getSummary(self):
-        if self.summary == "":
-            # self.summary = summarize_article(self.content)
-            self.summary = self.content[:100]
+        if not self.has_gpt_summary:
+            self.summary = summarize_article(self.content)
         return self.summary
 
     def getStoryContent(self, driver: webdriver, signInHandler: SigninHandler):
@@ -37,7 +40,9 @@ class Story:
 
             paras = driver.find_elements(By.TAG_NAME, "p")
             self.logger.info(f"Got {len(paras)} paras")
-            self.content = self.__sanitize_text__("\t\t".join([para.text for para in paras]))
+            self.content = self.__sanitize_text__(
+                "\t\t".join([para.text for para in paras])
+            )
 
         except LoginFailed as e:
             self.logger.error(
@@ -56,10 +61,10 @@ class Story:
         }
 
     def __sanitize_text__(self, text):
-        clean_text = re.sub(r'<.*?>', '', text)
-        clean_text = clean_text.replace(',', ';')
-        clean_text = clean_text.replace('\n', '\t\t')
-        clean_text = re.sub(r'[\'"“”‘’]', '', clean_text)
+        clean_text = re.sub(r"<.*?>", "", text)
+        clean_text = clean_text.replace(",", ";")
+        clean_text = clean_text.replace("\n", "\t\t")
+        clean_text = re.sub(r'[\'"“”‘’]', "", clean_text)
         clean_text = clean_text.strip()
         return clean_text
 
