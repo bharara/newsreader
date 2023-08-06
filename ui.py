@@ -43,19 +43,29 @@ def datePickerRow(lb):
 
 
 def table(df, lb):
-    colms = st.columns((1, 5, 2, 2, 3, 10))
-    fields = ["№", "Headline", "Published", "Category", "Action", "Summary"]
+    colms = st.columns((1, 5, 2, 2, 3, 1, 10))
+    fields = [
+        "№",
+        "Headline",
+        "Published",
+        "Category",
+        "Action",
+        "Relevance Score",
+        "Summary",
+    ]
+    # print(df)
     for col, field_name in zip(colms, fields):
         col.write(field_name)
 
     for x, title in enumerate(df["title"]):
-        c1, c2, publ, c3, c4, c5 = st.columns((1, 5, 2, 2, 3, 10))
+        c1, c2, publ, c3, c4, rel, c5 = st.columns((1, 5, 2, 2, 3, 1, 10))
         c1.write(x)
         c2.write(title)
         publ.write(df["published"][x])
         c3.write(df["category"][x])
         button_phold = c4.empty()
         do_action = button_phold.button("Summarize", key=x)
+        rel.write(df["relvence_score"][x])
         c5.write(df["content"][x].__str__()[0:500])
         if do_action:
             lb.info(f"Fetching article {df['title'][x]}")

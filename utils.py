@@ -18,8 +18,12 @@ def dateChanged():
 
 def clickFetch(lb):
     lb.info(f"Fetching stories for date {st.session_state.selected_date}")
-    print (st.session_state)
-    arch = Archiver(st.session_state.selected_date, st.session_state.driver, st.session_state.handler)
+    print(st.session_state)
+    arch = Archiver(
+        st.session_state.selected_date,
+        st.session_state.driver,
+        st.session_state.handler,
+    )
     arch.getStories()
     arch.getStoryDetails()
     lb.info(f"Saving stories to CSV")
@@ -48,19 +52,22 @@ def exit():
     p = psutil.Process(pid)
     p.terminate()
 
+
 def calculate_relevance_score_for_keyword(keyword, column):
     if isinstance(column, str):
-        return column.lower().count(keyword.lower())
+        return keyword.lower() in column.lower()
     return 0
+
 
 # Function to calculate total relevance score for all keywords in a row
 def calculate_total_relevance_score(row):
     total_score = 0
-    keywords = st.session_state.keywords or  []
+    keywords = [x.strip(" ") for x in st.session_state.keywords.split(",")] or []
     for keyword in keywords:
+        print(keyword)
         total_score += (
-            10 * calculate_relevance_score_for_keyword(keyword, row['title']) +
-            20 * calculate_relevance_score_for_keyword(keyword, row['category']) +
-            calculate_relevance_score_for_keyword(keyword, row['content'])
+            20 * calculate_relevance_score_for_keyword(keyword, row["category"])
+            + 10 * calculate_relevance_score_for_keyword(keyword, row["title"])
+            + calculate_relevance_score_for_keyword(keyword, row["content"])
         )
     return total_score
