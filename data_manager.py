@@ -37,3 +37,8 @@ def getStories(date:datetime.date):
         df = pd.read_csv(path)
         return df
     return None
+
+def getPrefetchUrls(date:datetime.date):
+    df = getStories(date)
+    prefetched_url = df.dropna(subset=['content'])['url'].tolist()
+    return prefetched_url

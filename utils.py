@@ -25,7 +25,8 @@ def clickFetch(lb):
         st.session_state.handler,
     )
     arch.getStories()
-    arch.getStoryDetails()
+    prefetched_url = data_manager.getPrefetchUrls(st.session_state.selected_date)
+    arch.getStoryDetails(prefetched_url)
     lb.info(f"Saving stories to CSV")
     arch.toCSV()
 
@@ -64,7 +65,6 @@ def calculate_total_relevance_score(row):
     total_score = 0
     keywords = [x.strip(" ") for x in st.session_state.keywords.split(",")] or []
     for keyword in keywords:
-        print(keyword)
         total_score += (
             20 * calculate_relevance_score_for_keyword(keyword, row["category"])
             + 10 * calculate_relevance_score_for_keyword(keyword, row["title"])

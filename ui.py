@@ -53,7 +53,6 @@ def table(df, lb):
         "Relevance Score",
         "Summary",
     ]
-    # print(df)
     for col, field_name in zip(colms, fields):
         col.write(field_name)
 

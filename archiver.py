@@ -65,9 +65,10 @@ class Archiver:
         except NoSuchElementException:
             pass
 
-    def getStoryDetails(self):
+    def getStoryDetails(self, filter):
         for story in self.stories:
-            story.getStoryContent(self.driver, self.handler)
+            if story.url not in filter:
+                story.getStoryContent(self.driver, self.handler)
 
     def toCSV(self):
         self.logger.info(
