@@ -18,7 +18,6 @@ def dateChanged():
 
 def clickFetch(lb):
     lb.info(f"Fetching stories for date {st.session_state.selected_date}")
-    print(st.session_state)
     arch = Archiver(
         st.session_state.selected_date,
         st.session_state.driver,
@@ -71,3 +70,9 @@ def calculate_total_relevance_score(row):
             + calculate_relevance_score_for_keyword(keyword, row["content"])
         )
     return total_score
+
+def getRelevenceScore(df):
+    df["relvence_score"] = df.apply(calculate_total_relevance_score, axis=1)
+    df = df.sort_values(by="relvence_score", ascending=False)
+    df = df.reset_index(drop=True)
+    return df
