@@ -30,7 +30,7 @@ def clickFetch(lb):
             if row["content"] ==  "" or pd.isna(row['content']):
                 st.session_state.df["content"][index] = Story(row["url"], st.session_state.driver, st.session_state.handler).getContent()
                 
-    print (st.session_state.df)
+    recalculateScore()
     data_manager.saveStoriesDf(st.session_state.df)
 
 
@@ -65,7 +65,6 @@ def calculate_relevance_score_for_keyword(keyword, column):
     return 0
 
 
-# Function to calculate total relevance score for all keywords in a row
 def calculate_total_relevance_score(row):
     total_score = 0
     keywords = [x.strip(" ") for x in st.session_state.keywords.split(",")] or []
@@ -76,3 +75,8 @@ def calculate_total_relevance_score(row):
             + calculate_relevance_score_for_keyword(keyword, row["content"])
         )
     return total_score
+
+def recalculateScore():
+    st.session_state.df["score"] = st.session_state.df.apply(calculate_total_relevance_score, axis=1)
+    st.session_state.df = st.session_state.df.sort_values(by="score", ascending=False)
+    st.session_state.df = st.session_state.df.reset_index(drop=True)

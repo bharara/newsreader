@@ -6,7 +6,8 @@ import streamlit as st
 import data_manager
 import utils
 import summary
-
+from signin import SigninHandler
+import utils
 
 def logbox():
     return st.info("Logs")
@@ -29,6 +30,9 @@ def sideBar():
     if st.sidebar.button("Save"):
         data_manager.saveUserData(new_email, new_password, new_keywords)
         st.sidebar.success("Data saved successfully!")
+        st.session_state.handler = SigninHandler(email, password)
+        st.session_state.keywords = keywords
+        utils.recalculateScore()
 
 
 def datePickerRow(lb):
