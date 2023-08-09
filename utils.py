@@ -9,9 +9,8 @@ import psutil
 import pandas as pd
 
 import data_manager
-from archiver import Archiver
+from scrapper import Scrapper
 from signin import SigninHandler
-from story import Story
 
 
 def dateChanged():
@@ -21,14 +20,14 @@ def dateChanged():
 def clickFetch(lb):
     date_range = st.session_state.get("selected_dates")
     lb.info(f"Fetching stories for date {date_range[0].strftime('%B %d, %Y')} to {date_range[1].strftime('%B %d, %Y')}")
-    arch = Archiver(date_range, st.session_state.driver)
+    arch = Scrapper(date_range, st.session_state.driver, st.session_state.handler)
     arch.getStories()
     st.session_state.df = arch.mergeWithDf(st.session_state.df)
     
     for index, row in st.session_state.df.iterrows():
         if date_range[0] <= row['date'] <= date_range[1]:
             if row["content"] ==  "" or pd.isna(row['content']):
-                st.session_state.df["content"][index] = Story(row["url"], st.session_state.driver, st.session_state.handler).getContent()
+                st.session_state.df["content"][index] = arch.getStoryContent(row["url"])
                 
     recalculateScore()
     data_manager.saveStoriesDf(st.session_state.df)

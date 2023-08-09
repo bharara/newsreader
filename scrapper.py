@@ -2,16 +2,22 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 
+from exceptions import LoginFailed
+from signin import SigninHandler
+
 import logging
 from datetime import date, timedelta
 import pandas as pd
+import re
+from time import sleep
 
-class Archiver:
+class Scrapper:
     stories = []
 
-    def __init__(self, dates: (date, date), driver: webdriver):
+    def __init__(self, dates: (date, date), driver: webdriver, handler:SigninHandler):
         self.start_date, self.end_date = dates
         self.driver = driver
+        self.handler = handler
         self.logger = logging.getLogger(__name__)
 
     def url(self, date:date, page=1):
@@ -75,3 +81,34 @@ class Archiver:
         df = pd.concat([df, pd.DataFrame(self.stories)], ignore_index=True)
         df = df.drop_duplicates(subset='url', keep='first')
         return df
+    
+    def getStoryContent(self, url) -> str:
+        self.logger.info(f"Getting story {url}")
+        self.driver.get(url)
+
+        try:
+            if not self.handler.isLoggedIn(self.driver):
+                sleep(5)
+                self.handler.login(self.driver)
+                self.driver.get(url)
+
+            paras = self.driver.find_elements(By.TAG_NAME, "p")
+            self.logger.info(f"Got {len(paras)} paras")
+            return  self.__sanitize_text__(
+                "\t\t".join([para.text for para in paras])
+            )
+
+        except LoginFailed as e:
+            self.logger.error(
+                f"LoginFailed exception occurred while getting the story: {e}"
+            )
+            raise Exception("Failed getting story.")
+
+
+    def __sanitize_text__(self, text:str) -> str:
+        clean_text = re.sub(r"<.*?>", "", text)
+        clean_text = clean_text.replace(",", ";")
+        clean_text = clean_text.replace("\n", "\t\t")
+        clean_text = re.sub(r'[\'"“”‘’]', "", clean_text)
+        clean_text = clean_text.strip()
+        return clean_text
