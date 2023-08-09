@@ -43,11 +43,13 @@ def initiateState():
     email, password, keywords = data_manager.getUserData()
     st.session_state.handler = SigninHandler(email, password)
     st.session_state.keywords = keywords
+    st.session_state.df = data_manager.getStoriesDf()
 
 
 def exit():
     if "driver" in st.session_state:
         st.session_state.driver.close()
+    data_manager.saveStoriesDf(st.session_state.df)
     pid = os.getpid()
     p = psutil.Process(pid)
     p.terminate()

@@ -21,15 +21,15 @@ st.title("Reader")
 
 lb = ui.logbox()
 utils.initiateState()
-selected_date = ui.datePickerRow(lb)
+ui.datePickerRow(lb)
 ui.sideBar()
 
-df = data_manager.getStories(selected_date)
-df["relvence_score"] = df.apply(utils.calculate_total_relevance_score, axis=1)
-df = df.sort_values(by="relvence_score", ascending=False)
-df = df.reset_index(drop=True)
+df = st.session_state.get("df")
 if df is None:
     lb.warning("Stories not fetched yet. Press fetch first")
 else:
-    lb.info(f"Stories for {selected_date}")
-    ui.table(df, lb)
+    date_range = st.session_state.get("selected_dates")
+    if len(date_range) == 2:
+        selected_stories = data_manager.getStoriesForDate(date_range, df)
+        lb.info(f"Stories for {date_range[0].strftime('%B %d, %Y')} to {date_range[1].strftime('%B %d, %Y')}")
+        ui.table(selected_stories, lb) 

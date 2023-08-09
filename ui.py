@@ -32,14 +32,14 @@ def sideBar():
 
 def datePickerRow(lb):
     col1, col2 = st.columns([4, 1])
-    selected_date = col1.date_input(
+    col1.date_input(
         "Select a date",
+        (date.today(), date.today()),
         max_value=date.today(),
         on_change=utils.dateChanged,
-        key="selected_date",
+        key="selected_dates",
     )
     col2.button("Fetch", on_click=utils.clickFetch, args=([lb]))
-    return selected_date
 
 
 def table(df, lb):
@@ -50,10 +50,10 @@ def table(df, lb):
         "Published",
         "Category",
         "Action",
-        "Relevance Score",
+        "Score",
         "Summary",
     ]
-    # print(df)
+
     for col, field_name in zip(colms, fields):
         col.write(field_name)
 
@@ -65,7 +65,7 @@ def table(df, lb):
         c3.write(df["category"][x])
         button_phold = c4.empty()
         do_action = button_phold.button("Summarize", key=x)
-        rel.write(df["relvence_score"][x])
+        rel.write(df["score"][x])
         c5.write(df["content"][x].__str__()[0:500])
         if do_action:
             lb.info(f"Fetching article {df['title'][x]}")
