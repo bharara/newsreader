@@ -1,47 +1,34 @@
-import json
 from selenium import webdriver
 from signin import SigninHandler
 from selenium.webdriver.common.by import By
-from time import sleep
+
 from exceptions import LoginFailed
 
-from summary_openai import summarize_article
 import logging
 import re
+from time import sleep
 
 
 class Story:
-    def __init__(
-        self, url, title="", category="", published="", content="", summary=""
-    ):
+    def __init__(self, url, driver: webdriver, handler: SigninHandler):
         self.url = url
-        self.title = title
-        self.category = category
-        self.published = published
-        self.content = content
-        self.summary = summary
-        self.has_gpt_summary = False
+        self.driver = driver
+        self.handler = handler
         self.logger = logging.getLogger(__name__)
 
-    def getSummary(self):
-        if not self.has_gpt_summary:
-            self.summary = summarize_article(self.content)
-            self.has_gpt_summary = True
-        return self.summary
-
-    def getStoryContent(self, driver: webdriver, signInHandler: SigninHandler):
-        self.logger.info(f"Getting story {self.title[:20]}")
-        driver.get(self.url)
+    def getContent(self) -> str:
+        self.logger.info(f"Getting story {self.url}")
+        self.driver.get(self.url)
 
         try:
-            if not signInHandler.isLoggedIn(driver):
-                sleep(15)
-                signInHandler.login(driver)
-                driver.get(self.url)
+            if not self.handler.isLoggedIn(self.driver):
+                sleep(5)
+                self.handler.login(self.driver)
+                self.driver.get(self.url)
 
-            paras = driver.find_elements(By.TAG_NAME, "p")
+            paras = self.driver.find_elements(By.TAG_NAME, "p")
             self.logger.info(f"Got {len(paras)} paras")
-            self.content = self.__sanitize_text__(
+            return  self.__sanitize_text__(
                 "\t\t".join([para.text for para in paras])
             )
 
@@ -51,26 +38,11 @@ class Story:
             )
             raise Exception("Failed getting story.")
 
-    def toDict(self):
-        return {
-            "url": self.url,
-            "title": self.title,
-            "category": self.category,
-            "published": self.published,
-            "content": self.content,
-            "summary": self.summary,
-        }
 
-    def __sanitize_text__(self, text):
+    def __sanitize_text__(self, text:str) -> str:
         clean_text = re.sub(r"<.*?>", "", text)
         clean_text = clean_text.replace(",", ";")
         clean_text = clean_text.replace("\n", "\t\t")
         clean_text = re.sub(r'[\'"“”‘’]', "", clean_text)
         clean_text = clean_text.strip()
         return clean_text
-
-    def __repr__(self):
-        return self.__str__()
-
-    def __str__(self):
-        return json.dumps(self.toDict())

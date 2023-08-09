@@ -6,10 +6,12 @@ import streamlit as st
 import logging
 import os
 import psutil
+import pandas as pd
 
 import data_manager
 from archiver import Archiver
 from signin import SigninHandler
+from story import Story
 
 
 def dateChanged():
@@ -17,17 +19,19 @@ def dateChanged():
 
 
 def clickFetch(lb):
-    lb.info(f"Fetching stories for date {st.session_state.selected_date}")
-    print(st.session_state)
-    arch = Archiver(
-        st.session_state.selected_date,
-        st.session_state.driver,
-        st.session_state.handler,
-    )
+    date_range = st.session_state.get("selected_dates")
+    lb.info(f"Fetching stories for date {date_range[0].strftime('%B %d, %Y')} to {date_range[1].strftime('%B %d, %Y')}")
+    arch = Archiver(date_range, st.session_state.driver)
     arch.getStories()
-    arch.getStoryDetails()
-    lb.info(f"Saving stories to CSV")
-    arch.toCSV()
+    st.session_state.df = arch.mergeWithDf(st.session_state.df)
+    
+    for index, row in st.session_state.df.iterrows():
+        if date_range[0] <= row['date'] <= date_range[1]:
+            if row["content"] ==  "" or pd.isna(row['content']):
+                st.session_state.df["content"][index] = Story(row["url"], st.session_state.driver, st.session_state.handler).getContent()
+                
+    print (st.session_state.df)
+    data_manager.saveStoriesDf(st.session_state.df)
 
 
 @st.cache_resource
@@ -66,7 +70,6 @@ def calculate_total_relevance_score(row):
     total_score = 0
     keywords = [x.strip(" ") for x in st.session_state.keywords.split(",")] or []
     for keyword in keywords:
-        print(keyword)
         total_score += (
             20 * calculate_relevance_score_for_keyword(keyword, row["category"])
             + 10 * calculate_relevance_score_for_keyword(keyword, row["title"])

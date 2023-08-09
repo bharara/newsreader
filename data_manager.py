@@ -41,7 +41,6 @@ def getStories(date:datetime.date):
 def getStoriesDf() -> pd.DataFrame:
     df = pd.read_csv("data/stories.csv")
     df['date'] = pd.to_datetime(df['date']).dt.date
-    print (df.dtypes)
     return df
 
 def saveStoriesDf(df:pd.DataFrame):

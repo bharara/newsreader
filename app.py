@@ -24,12 +24,7 @@ utils.initiateState()
 ui.datePickerRow(lb)
 ui.sideBar()
 
-df = st.session_state.get("df")
-if df is None:
+if st.session_state.get("df") is None:
     lb.warning("Stories not fetched yet. Press fetch first")
 else:
-    date_range = st.session_state.get("selected_dates")
-    if len(date_range) == 2:
-        selected_stories = data_manager.getStoriesForDate(date_range, df)
-        lb.info(f"Stories for {date_range[0].strftime('%B %d, %Y')} to {date_range[1].strftime('%B %d, %Y')}")
-        ui.table(selected_stories, lb) 
+    ui.table(lb) 
