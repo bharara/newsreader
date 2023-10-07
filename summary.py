@@ -1,10 +1,10 @@
-import openai
 
 with open("openai_key.txt", "r") as file:
     openai_key = file.readline().strip()
 
 
-def summarize_article(article_text):
+def get_openai_summary(article_text):
+    import openai
     # Initialize the OpenAI API client with your API key
     openai.api_key = openai_key
 

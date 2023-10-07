@@ -21,14 +21,10 @@ st.title("Reader")
 
 lb = ui.logbox()
 utils.initiateState()
-selected_date = ui.datePickerRow(lb)
+ui.datePickerRow(lb)
 ui.sideBar()
 
-print(st.session_state)
-df = data_manager.getStories(selected_date)
-if df is None:
+if st.session_state.get("df") is None:
     lb.warning("Stories not fetched yet. Press fetch first")
 else:
-    df = utils.getRelevenceScore(df)
-    lb.info(f"Stories for {selected_date}")
-    ui.table(df, lb)
+    ui.table(lb) 

@@ -6,9 +6,10 @@ import streamlit as st
 import logging
 import os
 import psutil
+import pandas as pd
 
 import data_manager
-from archiver import Archiver
+from scrapper import Scrapper
 from signin import SigninHandler
 
 
@@ -17,17 +18,19 @@ def dateChanged():
 
 
 def clickFetch(lb):
-    lb.info(f"Fetching stories for date {st.session_state.selected_date}")
-    arch = Archiver(
-        st.session_state.selected_date,
-        st.session_state.driver,
-        st.session_state.handler,
-    )
+    date_range = st.session_state.get("selected_dates")
+    lb.info(f"Fetching stories for date {date_range[0].strftime('%B %d, %Y')} to {date_range[1].strftime('%B %d, %Y')}")
+    arch = Scrapper(date_range, st.session_state.driver, st.session_state.handler)
     arch.getStories()
-    prefetched_url = data_manager.getPrefetchUrls(st.session_state.selected_date)
-    arch.getStoryDetails(prefetched_url)
-    lb.info(f"Saving stories to CSV")
-    arch.toCSV()
+    st.session_state.df = arch.mergeWithDf(st.session_state.df)
+    
+    for index, row in st.session_state.df.iterrows():
+        if date_range[0] <= row['date'] <= date_range[1]:
+            if row["content"] ==  "" or pd.isna(row['content']):
+                st.session_state.df["content"][index] = arch.getStoryContent(row["url"])
+                
+    recalculateScore()
+    data_manager.saveStoriesDf(st.session_state.df)
 
 
 @st.cache_resource
@@ -43,11 +46,13 @@ def initiateState():
     email, password, keywords = data_manager.getUserData()
     st.session_state.handler = SigninHandler(email, password)
     st.session_state.keywords = keywords
+    st.session_state.df = data_manager.getStoriesDf()
 
 
 def exit():
     if "driver" in st.session_state:
         st.session_state.driver.close()
+    data_manager.saveStoriesDf(st.session_state.df)
     pid = os.getpid()
     p = psutil.Process(pid)
     p.terminate()
@@ -59,7 +64,6 @@ def calculate_relevance_score_for_keyword(keyword, column):
     return 0
 
 
-# Function to calculate total relevance score for all keywords in a row
 def calculate_total_relevance_score(row):
     total_score = 0
     keywords = [x.strip(" ") for x in st.session_state.keywords.split(",")] or []
@@ -71,8 +75,7 @@ def calculate_total_relevance_score(row):
         )
     return total_score
 
-def getRelevenceScore(df):
-    df["relvence_score"] = df.apply(calculate_total_relevance_score, axis=1)
-    df = df.sort_values(by="relvence_score", ascending=False)
-    df = df.reset_index(drop=True)
-    return df
+def recalculateScore():
+    st.session_state.df["score"] = st.session_state.df.apply(calculate_total_relevance_score, axis=1)
+    st.session_state.df = st.session_state.df.sort_values(by="score", ascending=False)
+    st.session_state.df = st.session_state.df.reset_index(drop=True)

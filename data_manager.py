@@ -38,7 +38,15 @@ def getStories(date:datetime.date):
         return df
     return None
 
-def getPrefetchUrls(date:datetime.date):
-    df = getStories(date)
-    prefetched_url = df.dropna(subset=['content'])['url'].tolist()
-    return prefetched_url
+def getStoriesDf() -> pd.DataFrame:
+    df = pd.read_csv("data/stories.csv")
+    df['date'] = pd.to_datetime(df['date']).dt.date
+    return df
+
+def saveStoriesDf(df:pd.DataFrame):
+    df.to_csv("data/stories.csv", index=False)
+
+def getStoriesForDate(date_range, df:pd.DataFrame):
+    start_date, end_date = date_range
+    filtered_rows = df[(df['date'] >= start_date) & (df['date'] <= end_date)]
+    return filtered_rows

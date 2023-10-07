@@ -1,11 +1,13 @@
 from datetime import date
+import pandas as pd
 
 import streamlit as st
 
 import data_manager
 import utils
-from story import Story
-
+import summary
+from signin import SigninHandler
+import utils
 
 def logbox():
     return st.info("Logs")
@@ -28,21 +30,29 @@ def sideBar():
     if st.sidebar.button("Save"):
         data_manager.saveUserData(new_email, new_password, new_keywords)
         st.sidebar.success("Data saved successfully!")
+        st.session_state.handler = SigninHandler(email, password)
+        st.session_state.keywords = keywords
+        utils.recalculateScore()
 
 
 def datePickerRow(lb):
     col1, col2 = st.columns([4, 1])
-    selected_date = col1.date_input(
+    col1.date_input(
         "Select a date",
+        (date.today(), date.today()),
         max_value=date.today(),
         on_change=utils.dateChanged,
-        key="selected_date",
+        key="selected_dates",
     )
     col2.button("Fetch", on_click=utils.clickFetch, args=([lb]))
-    return selected_date
 
 
-def table(df, lb):
+def table(lb):
+    date_range = st.session_state.get("selected_dates")
+    if len(date_range) != 2:
+        return
+    lb.info(f"Stories for {date_range[0].strftime('%B %d, %Y')} to {date_range[1].strftime('%B %d, %Y')}")
+
     colms = st.columns((1, 5, 2, 2, 3, 1, 10))
     fields = [
         "№",
@@ -50,32 +60,28 @@ def table(df, lb):
         "Published",
         "Category",
         "Action",
-        "Relevance Score",
+        "Score",
         "Summary",
     ]
+
     for col, field_name in zip(colms, fields):
         col.write(field_name)
 
-    for x, title in enumerate(df["title"]):
+    for x, row in st.session_state.df.iterrows():
+        if date_range[0] > row["date"]  or row["date"] > date_range[1]:
+            continue
         c1, c2, publ, c3, c4, rel, c5 = st.columns((1, 5, 2, 2, 3, 1, 10))
         c1.write(x)
-        c2.write(title)
-        publ.write(df["published"][x])
-        c3.write(df["category"][x])
+        c2.write(row["title"])
+        publ.write(row["published"])
+        c3.write(row["category"])
         button_phold = c4.empty()
         do_action = button_phold.button("Summarize", key=x)
-        rel.write(df["relvence_score"][x])
-        c5.write(df["content"][x].__str__()[0:500])
+        rel.write(row["score"])
+        c5.write(row["content"].__str__()[0:500])
         if do_action:
-            lb.info(f"Fetching article {df['title'][x]}")
-            story = Story(
-                df["url"][x],
-                df["title"][x],
-                df["category"][x],
-                df["published"][x],
-                content=df["content"][x],
-                summary=df["summary"][x],
-            )
-            lb.info(f"Summarizing article with length {len(story.content)}")
-            summary = story.getSummary()
-            c5.write(summary)
+            if row["summary"] == "" or pd.isna(row["summary"]):
+                lb.info(f"Summarizing article with length {len(row['content'])}")
+                st.session_state.df["summary"][x] = summary.get_openai_summary(row["content"])
+            c5.empty()
+            c5.write(st.session_state.df["summary"][x])
